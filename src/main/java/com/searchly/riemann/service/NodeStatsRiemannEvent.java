@@ -5,8 +5,10 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.indices.NodeIndicesStats;
 import org.elasticsearch.monitor.MonitorService;
 import org.elasticsearch.monitor.fs.FsStats;
+import org.elasticsearch.monitor.jvm.JvmService;
 import org.elasticsearch.monitor.jvm.JvmStats;
 import org.elasticsearch.monitor.os.OsStats;
+import org.elasticsearch.monitor.process.ProcessService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +48,8 @@ public class NodeStatsRiemannEvent {
 
     public void sendEvents(MonitorService monitorService, NodeIndicesStats nodeIndicesStats) {
 
+        //JVM
+        //mem
         if (settings.getAsBoolean("metrics.riemann.heap_ratio", true)) {
             heapRatio(monitorService.jvmService().stats());
         }
@@ -85,6 +89,29 @@ public class NodeStatsRiemannEvent {
         if (settings.getAsBoolean("metrics.riemann.disk_usage", true)) {
             systemFile(monitorService.fsService().stats());
         }
+
+
+        //PROCESS
+        if (settings.getAsBoolean("metrics.riemann.process_metrics", true)) {
+            processMetrics(monitorService.processService());
+        }
+
+        //JVM
+        if (settings.getAsBoolean("metrics.riemann.jvm_metrics", true)) {
+            jvmMetrics(monitorService.jvmService());
+        }
+
+
+    }
+
+    private void jvmMetrics(JvmService jvmService) {
+        riemannClient.event().host(hostDefinition).
+                service("JVM Thread Count %").description("thread_count").tags(tags).metric(jvmService.stats().threads().getCount()).send();
+    }
+
+    private void processMetrics(ProcessService processService) {
+        riemannClient.event().host(hostDefinition).
+                service("Open Files %").description("open_files").tags(tags).metric(processService.stats().getOpenFileDescriptors()).send();
     }
 
     private void currentIndexingRate(NodeIndicesStats nodeIndicesStats) {

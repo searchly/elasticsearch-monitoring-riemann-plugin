@@ -6,7 +6,9 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.health.TransportClusterHealthAction;
+import org.elasticsearch.action.admin.cluster.state.TransportClusterStateAction;
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags;
+import org.elasticsearch.action.support.master.info.TransportClusterInfoAction;
 import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
@@ -34,13 +36,20 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     private final String clusterName;
     private RiemannClient riemannClient;
     private final TransportClusterHealthAction transportClusterHealthAction;
+    private final TransportClusterStateAction transportClusterStateAction;
+    private final TransportClusterInfoAction transportClusterInfoAction;
     private String[] tags;
 
     Timer timer = new Timer();
 
     @Inject
-    public RiemannService(Settings settings, ClusterService clusterService,
-                          TransportClusterHealthAction transportClusterHealthAction, MonitorService monitorService, IndicesService indicesService) {
+    public RiemannService(Settings settings,
+                          ClusterService clusterService,
+                          TransportClusterHealthAction transportClusterHealthAction,
+                          TransportClusterStateAction transportClusterStateAction,
+                          TransportClusterInfoAction transportClusterInfoAction,
+                          MonitorService monitorService,
+                          IndicesService indicesService) {
         super(settings);
         this.clusterService = clusterService;
         riemannRefreshInternal = settings.getAsTime("metrics.riemann.every", TimeValue.timeValueSeconds(1));
@@ -54,6 +63,8 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
             logger.error("Can not create Riemann UDP connection", e);
         }
         this.transportClusterHealthAction = transportClusterHealthAction;
+        this.transportClusterStateAction = transportClusterStateAction;
+        this.transportClusterInfoAction = transportClusterInfoAction;
         this.monitorService = monitorService;
         this.indicesService = indicesService;
     }
@@ -120,6 +131,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
 
                     NodeStatsRiemannEvent nodeStatsRiemannEvent = NodeStatsRiemannEvent.getNodeStatsRiemannEvent(riemannClient, settings, hostDefinition, clusterName, tags);
                     nodeStatsRiemannEvent.sendEvents(monitorService, indicesService.stats(true, new CommonStatsFlags(CommonStatsFlags.Flag.Docs, CommonStatsFlags.Flag.Store, CommonStatsFlags.Flag.Indexing, CommonStatsFlags.Flag.Get, CommonStatsFlags.Flag.Search)));
+
 
                     logger.debug("event sent to riemann");
 
