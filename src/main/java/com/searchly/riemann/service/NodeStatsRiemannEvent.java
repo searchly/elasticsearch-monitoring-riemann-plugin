@@ -90,28 +90,6 @@ public class NodeStatsRiemannEvent {
             systemFile(monitorService.fsService().stats());
         }
 
-
-        //PROCESS
-        if (settings.getAsBoolean("metrics.riemann.process_metrics", true)) {
-            processMetrics(monitorService.processService());
-        }
-
-        //JVM
-        if (settings.getAsBoolean("metrics.riemann.jvm_metrics", true)) {
-            jvmMetrics(monitorService.jvmService());
-        }
-
-
-    }
-
-    private void jvmMetrics(JvmService jvmService) {
-        riemannClient.event().host(hostDefinition).
-                service("JVM Thread Count %").description("thread_count").tags(tags).metric(jvmService.stats().threads().getCount()).send();
-    }
-
-    private void processMetrics(ProcessService processService) {
-        riemannClient.event().host(hostDefinition).
-                service("Open Files %").description("open_files").tags(tags).metric(processService.stats().getOpenFileDescriptors()).send();
     }
 
     private void currentIndexingRate(NodeIndicesStats nodeIndicesStats) {
