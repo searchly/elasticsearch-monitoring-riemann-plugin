@@ -36,8 +36,6 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     private final String clusterName;
     private RiemannClient riemannClient;
     private final TransportClusterHealthAction transportClusterHealthAction;
-    private final TransportClusterStateAction transportClusterStateAction;
-    private final TransportClusterInfoAction transportClusterInfoAction;
     private String[] tags;
 
     Timer timer = new Timer();
@@ -46,8 +44,6 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     public RiemannService(Settings settings,
                           ClusterService clusterService,
                           TransportClusterHealthAction transportClusterHealthAction,
-                          TransportClusterStateAction transportClusterStateAction,
-                          TransportClusterInfoAction transportClusterInfoAction,
                           MonitorService monitorService,
                           IndicesService indicesService) {
         super(settings);
@@ -63,8 +59,6 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
             logger.error("Can not create Riemann UDP connection", e);
         }
         this.transportClusterHealthAction = transportClusterHealthAction;
-        this.transportClusterStateAction = transportClusterStateAction;
-        this.transportClusterInfoAction = transportClusterInfoAction;
         this.monitorService = monitorService;
         this.indicesService = indicesService;
     }
