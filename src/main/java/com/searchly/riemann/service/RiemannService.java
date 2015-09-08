@@ -26,8 +26,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * TODO: Riemann attribute support
+ * TODO: change service name to match general Riemann approach - should include more details
  * TODO: Configuration for metric OK and WARNING thresholds
+ * TODO: cluster health status for single node clusters
  * TODO: Expand metrics recorded and add configuration? http://radar.oreilly.com/2015/04/10-elasticsearch-metrics-to-watch.html
  */
 public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
@@ -62,7 +63,11 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
         tags = settings.getAsArray("metrics.riemann.tags", new String[]{clusterName});
         Settings attributeSettings = settings.getByPrefix("metrics.riemann.attribute");
         for(ImmutableMap.Entry<String, String> entry: attributeSettings.getAsMap().entrySet()){
-            attributes.put(entry.getKey(), entry.getValue());
+            String key = entry.getKey();
+            if(key.startsWith(".")){
+                key = key.substring(1);
+            }
+            attributes.put(key, entry.getValue());
         }
         try {
             riemannClient = RiemannClient.udp(new InetSocketAddress(riemannHost, riemannPort));
@@ -94,8 +99,8 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     @Override
     protected void doStop() throws ElasticsearchException {
         try {
-            riemannClient.disconnect();
-        } catch (IOException e) {
+            riemannClient.close();
+        } catch (RuntimeException e) {
             logger.error("Riemann connection can not be closed", e);
         }
         logger.info("Riemann reporter stopped");
@@ -123,13 +128,13 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
                         transportClusterHealthAction.execute(new ClusterHealthRequest(), new ActionListener<ClusterHealthResponse>() {
                             @Override
                             public void onResponse(ClusterHealthResponse clusterIndexHealths) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags)
+                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes)
                                         .state(RiemannUtils.getStateWithClusterInformation(clusterIndexHealths.getStatus().name())).send();
                             }
 
                             @Override
                             public void onFailure(Throwable throwable) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).state("critical").send();
+                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes).state("critical").send();
                             }
                         });
                     }
