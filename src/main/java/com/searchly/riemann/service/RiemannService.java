@@ -27,9 +27,8 @@ import java.util.TimerTask;
 
 /**
  * TODO: change service name to match general Riemann approach - should include more details
- * TODO: Configuration for metric OK and WARNING thresholds
  * TODO: cluster health status for single node clusters
- * TODO: Expand metrics recorded and add configuration? http://radar.oreilly.com/2015/04/10-elasticsearch-metrics-to-watch.html
+ * TODO: Expand metrics recorded? http://radar.oreilly.com/2015/04/10-elasticsearch-metrics-to-watch.html
  */
 public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
 
