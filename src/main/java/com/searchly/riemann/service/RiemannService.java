@@ -9,6 +9,7 @@ import org.elasticsearch.action.admin.cluster.health.TransportClusterHealthActio
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags;
 import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.node.DiscoveryNode;
+import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.component.Lifecycle;
 import org.elasticsearch.common.inject.Inject;
@@ -19,9 +20,16 @@ import org.elasticsearch.monitor.MonitorService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * TODO: change service name to match general Riemann approach - should include more details
+ * TODO: cluster health status for single node clusters
+ * TODO: Expand metrics recorded? http://radar.oreilly.com/2015/04/10-elasticsearch-metrics-to-watch.html
+ */
 public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
 
     private final ClusterService clusterService;
@@ -35,6 +43,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     private RiemannClient riemannClient;
     private final TransportClusterHealthAction transportClusterHealthAction;
     private String[] tags;
+    private Map<String, String> attributes = new HashMap<>();
 
     Timer timer = new Timer();
 
@@ -51,6 +60,14 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
         riemannPort = settings.getAsInt("metrics.riemann.port", 5555);
         clusterName = settings.get("cluster.name");
         tags = settings.getAsArray("metrics.riemann.tags", new String[]{clusterName});
+        Settings attributeSettings = settings.getByPrefix("metrics.riemann.attribute");
+        for(ImmutableMap.Entry<String, String> entry: attributeSettings.getAsMap().entrySet()){
+            String key = entry.getKey();
+            if(key.startsWith(".")){
+                key = key.substring(1);
+            }
+            attributes.put(key, entry.getValue());
+        }
         try {
             riemannClient = RiemannClient.udp(new InetSocketAddress(riemannHost, riemannPort));
         } catch (IOException e) {
@@ -81,8 +98,8 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
     @Override
     protected void doStop() throws ElasticsearchException {
         try {
-            riemannClient.disconnect();
-        } catch (IOException e) {
+            riemannClient.close();
+        } catch (RuntimeException e) {
             logger.error("Riemann connection can not be closed", e);
         }
         logger.info("Riemann reporter stopped");
@@ -110,18 +127,18 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
                         transportClusterHealthAction.execute(new ClusterHealthRequest(), new ActionListener<ClusterHealthResponse>() {
                             @Override
                             public void onResponse(ClusterHealthResponse clusterIndexHealths) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags)
+                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes)
                                         .state(RiemannUtils.getStateWithClusterInformation(clusterIndexHealths.getStatus().name())).send();
                             }
 
                             @Override
                             public void onFailure(Throwable throwable) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).state("critical").send();
+                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes).state("critical").send();
                             }
                         });
                     }
 
-                    NodeStatsRiemannEvent nodeStatsRiemannEvent = NodeStatsRiemannEvent.getNodeStatsRiemannEvent(riemannClient, settings, hostDefinition, clusterName, tags);
+                    NodeStatsRiemannEvent nodeStatsRiemannEvent = NodeStatsRiemannEvent.getNodeStatsRiemannEvent(riemannClient, settings, hostDefinition, clusterName, tags, attributes);
                     nodeStatsRiemannEvent.sendEvents(monitorService, indicesService.stats(true, new CommonStatsFlags(CommonStatsFlags.Flag.Docs, CommonStatsFlags.Flag.Store, CommonStatsFlags.Flag.Indexing, CommonStatsFlags.Flag.Get, CommonStatsFlags.Flag.Search)));
 
 
