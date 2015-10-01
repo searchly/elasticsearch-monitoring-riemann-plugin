@@ -5,7 +5,7 @@ This plugin sends ElasticSearch node metrics to [Riemann](http://riemann.io/) in
 
 ## Installation
 
-bin/plugin -url https://github.com/searchly/elasticsearch-monitoring-riemann-plugin/releases/download/elasticsearch-riemann-plugin-1.5.2/elasticsearch-riemann-plugin-1.5.2.zip  -install riemann
+bin/plugin -url https://github.com/searchly/elasticsearch-monitoring-riemann-plugin/releases/download/elasticsearch-riemann-plugin-1.7.2/elasticsearch-riemann-plugin-1.7.2.zip  -install riemann
 
 ## Configuration
 
