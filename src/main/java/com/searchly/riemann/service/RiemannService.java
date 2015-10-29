@@ -56,7 +56,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
         super(settings);
         this.clusterService = clusterService;
         riemannRefreshInternal = settings.getAsTime("metrics.riemann.every", TimeValue.timeValueSeconds(1));
-        riemannHost = settings.get("metrics.riemann.host", "localhost");
+        riemannHost = settings.get("metrics.riemann.host", "");
         riemannPort = settings.getAsInt("metrics.riemann.port", 5555);
         clusterName = settings.get("cluster.name");
         tags = settings.getAsArray("metrics.riemann.tags", new String[]{clusterName});
