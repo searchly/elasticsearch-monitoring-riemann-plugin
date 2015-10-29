@@ -68,11 +68,6 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
             }
             attributes.put(key, entry.getValue());
         }
-        try {
-            riemannClient = RiemannClient.udp(new InetSocketAddress(riemannHost, riemannPort));
-        } catch (IOException e) {
-            logger.error("Can not create Riemann UDP connection", e);
-        }
         this.transportClusterHealthAction = transportClusterHealthAction;
         this.monitorService = monitorService;
         this.indicesService = indicesService;
@@ -80,18 +75,18 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
 
     @Override
     protected void doStart() throws ElasticsearchException {
-        try {
-            riemannClient.connect();
-        } catch (IOException e) {
-            logger.error("Can not connect to Riemann", e);
-        }
         if (riemannHost != null && riemannHost.length() > 0) {
+            try {
+                riemannClient = RiemannClient.udp(new InetSocketAddress(riemannHost, riemannPort));
+                riemannClient.connect();
+                timer.scheduleAtFixedRate(new RiemannTask(), riemannRefreshInternal.millis(), riemannRefreshInternal.millis());
 
-            timer.scheduleAtFixedRate(new RiemannTask(), riemannRefreshInternal.millis(), riemannRefreshInternal.millis());
-
-            logger.info("Riemann reporting triggered every [{}] to host [{}:{}]", riemannRefreshInternal, riemannHost, riemannPort);
+                logger.info("Riemann reporting triggered every [{}] to host [{}:{}]", riemannRefreshInternal, riemannHost, riemannPort);
+            } catch (IOException e) {
+                logger.error("Can not connect to Riemann", e);
+            }
         } else {
-            logger.error("Riemann reporting disabled, no riemann host configured");
+            logger.warn("Riemann reporting disabled, no riemann host configured");
         }
     }
 
