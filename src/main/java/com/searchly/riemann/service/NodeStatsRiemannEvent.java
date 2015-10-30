@@ -1,5 +1,6 @@
 package com.searchly.riemann.service;
 
+import com.aphyr.riemann.client.EventDSL;
 import com.aphyr.riemann.client.RiemannClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.indices.NodeIndicesStats;
@@ -112,21 +113,23 @@ public class NodeStatsRiemannEvent {
 
     }
 
+    private EventDSL buildEvent() {
+        return riemannClient.event().host(hostDefinition).tags(tags).attributes(attributes);
+    }
+
     private void currentIndexingRate(NodeIndicesStats nodeIndicesStats, long ok, long warning) {
         long indexCount = nodeIndicesStats.getIndexing().getTotal().getIndexCount();
         long delta = deltaMap.get("index_rate");
         long indexingCurrent = indexCount - delta;
         deltaMap.put("index_rate", indexCount);
-        riemannClient.event().host(hostDefinition).
-                service("Current Indexing Rate").description("current_indexing_rate").tags(tags).attributes(attributes).state(RiemannUtils.getState(indexingCurrent, ok, warning)).metric(indexingCurrent).send();
+        buildEvent().service("Current Indexing Rate").description("current_indexing_rate").state(RiemannUtils.getState(indexingCurrent, ok, warning)).metric(indexingCurrent).send();
     }
 
     private void heapRatio(JvmStats jvmStats, long ok, long warning) {
         long heapUsed = jvmStats.getMem().getHeapUsed().getBytes();
         long heapCommitted = jvmStats.getMem().getHeapCommitted().getBytes();
         long heapRatio = (heapUsed * 100) / heapCommitted;
-        riemannClient.event().host(hostDefinition).
-                service("Heap Usage Ratio %").description("heap_usage_ratio").tags(tags).attributes(attributes).state(RiemannUtils.getState(heapRatio, ok, warning)).metric(heapRatio).send();
+        buildEvent().service("Heap Usage Ratio %").description("heap_usage_ratio").state(RiemannUtils.getState(heapRatio, ok, warning)).metric(heapRatio).send();
     }
 
     private void currentQueryRate(NodeIndicesStats nodeIndicesStats, long ok, long warning) {
@@ -136,8 +139,7 @@ public class NodeStatsRiemannEvent {
         long queryCurrent = queryCount - delta;
         deltaMap.put("query_rate", queryCount);
 
-        riemannClient.event().host(hostDefinition).
-                service("Current Query Rate").description("current_query_rate").tags(tags).attributes(attributes).state(RiemannUtils.getState(queryCurrent, ok, warning)).metric(queryCurrent).send();
+        buildEvent().service("Current Query Rate").description("current_query_rate").state(RiemannUtils.getState(queryCurrent, ok, warning)).metric(queryCurrent).send();
     }
 
     private void currentFetchRate(NodeIndicesStats nodeIndicesStats, long ok, long warning) {
@@ -145,38 +147,32 @@ public class NodeStatsRiemannEvent {
         long delta = deltaMap.get("fetch_rate");
         long fetchCurrent = fetchCount - delta;
         deltaMap.put("fetch_rate", fetchCount);
-        riemannClient.event().host(hostDefinition).
-                service("Current Fetch Rate").description("current_fetch_rate").tags(tags).attributes(attributes).state(RiemannUtils.getState(fetchCurrent, ok, warning)).metric(fetchCurrent).send();
+        buildEvent().service("Current Fetch Rate").description("current_fetch_rate").state(RiemannUtils.getState(fetchCurrent, ok, warning)).metric(fetchCurrent).send();
     }
 
     private void totalThreadCount(JvmStats jvmStats, long ok, long warning) {
         int threadCount = jvmStats.getThreads().getCount();
-        riemannClient.event().host(hostDefinition).
-                service("Total Thread Count").description("total_thread_count").tags(tags).attributes(attributes).state(RiemannUtils.getState(threadCount, ok, warning)).metric(threadCount).send();
+        buildEvent().service("Total Thread Count").description("total_thread_count").state(RiemannUtils.getState(threadCount, ok, warning)).metric(threadCount).send();
     }
 
     private void systemLoadOne(OsStats osStats, long ok, long warning) {
         double[] systemLoad = osStats.getLoadAverage();
-        riemannClient.event().host(hostDefinition).
-                service("System Load(1m)").description("system_load").tags(tags).attributes(attributes).state(RiemannUtils.getState((long) systemLoad[0], ok, warning)).metric(systemLoad[0]).send();
+        buildEvent().service("System Load(1m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[0], ok, warning)).metric(systemLoad[0]).send();
     }
 
     private void systemLoadFive(OsStats osStats, long ok, long warning) {
         double[] systemLoad = osStats.getLoadAverage();
-        riemannClient.event().host(hostDefinition).
-                service("System Load(5m)").description("system_load").tags(tags).attributes(attributes).state(RiemannUtils.getState((long) systemLoad[1], ok, warning)).metric(systemLoad[1]).send();
+        buildEvent().service("System Load(5m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[1], ok, warning)).metric(systemLoad[1]).send();
     }
 
     private void systemLoadFifteen(OsStats osStats, long ok, long warning) {
         double[] systemLoad = osStats.getLoadAverage();
-        riemannClient.event().host(hostDefinition).
-                service("System Load(15m)").description("system_load").tags(tags).attributes(attributes).state(RiemannUtils.getState((long) systemLoad[2], ok, warning)).metric(systemLoad[2]).send();
+        buildEvent().service("System Load(15m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[2], ok, warning)).metric(systemLoad[2]).send();
     }
 
     private void systemMemory(OsStats osStats, long ok, long warning) {
         short memoryUsedPercentage = osStats.getMem().getUsedPercent();
-        riemannClient.event().host(hostDefinition).
-                service("System Memory Usage %").description("system_memory_usage").tags(tags).attributes(attributes).state(RiemannUtils.getState(memoryUsedPercentage, ok, warning)).metric(memoryUsedPercentage).send();
+        buildEvent().service("System Memory Usage %").description("system_memory_usage").state(RiemannUtils.getState(memoryUsedPercentage, ok, warning)).metric(memoryUsedPercentage).send();
 
     }
 
@@ -185,8 +181,7 @@ public class NodeStatsRiemannEvent {
             long free = info.getFree().getBytes();
             long total = info.getTotal().getBytes();
             long usageRatio = ((total - free) * 100) / total;
-            riemannClient.event().host(hostDefinition).
-                    service("Disk Usage %").description("system_disk_usage").tags(tags).attributes(attributes).state(RiemannUtils.getState(usageRatio, ok, warning)).metric(usageRatio).send();
+            buildEvent().service("Disk Usage %").description("system_disk_usage").state(RiemannUtils.getState(usageRatio, ok, warning)).metric(usageRatio).send();
         }
     }
 }

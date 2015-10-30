@@ -1,5 +1,6 @@
 package com.searchly.riemann.service;
 
+import com.aphyr.riemann.client.EventDSL;
 import com.aphyr.riemann.client.RiemannClient;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionListener;
@@ -120,15 +121,19 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
                     if (settings.getAsBoolean("metrics.riemann.health", true)) {
 
                         transportClusterHealthAction.execute(new ClusterHealthRequest(), new ActionListener<ClusterHealthResponse>() {
+                            private EventDSL buildEvent() {
+                                return riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes);
+                            }
+
                             @Override
                             public void onResponse(ClusterHealthResponse clusterIndexHealths) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes)
-                                        .state(RiemannUtils.getStateWithClusterInformation(clusterIndexHealths.getStatus().name())).send();
+                                final String state = RiemannUtils.getStateWithClusterInformation(clusterIndexHealths.getStatus().name());
+                                buildEvent().state(state).send();
                             }
 
                             @Override
                             public void onFailure(Throwable throwable) {
-                                riemannClient.event().host(hostDefinition).service("Cluster Health").description("cluster_health").tags(tags).attributes(attributes).state("critical").send();
+                                buildEvent().state("critical").send();
                             }
                         });
                     }
