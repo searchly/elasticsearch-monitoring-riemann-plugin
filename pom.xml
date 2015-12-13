@@ -15,12 +15,11 @@
         <riemann-java-client.version>0.4.1</riemann-java-client.version>
         <java-compiler.version>1.8</java-compiler.version>
     </properties>
-
+    
     <scm>
-        <connection>scm:git:git@github.com:searchly/elasticsearch-monitoring-riemann-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:searchly/elasticsearch-monitoring-riemann-plugin.git
-        </developerConnection>
-        <url>git@github.com:searchly/elasticsearch-monitoring-riemann-plugin.git</url>
+        <connection>scm:git:https://github.com/searchly/elasticsearch-monitoring-riemann-plugin.git/</connection>
+        <developerConnection>scm:git:https://github.com/searchly/elasticsearch-monitoring-riemann-plugin.git/</developerConnection>
+        <url>https://github.com/searchly/elasticsearch-monitoring-riemann-plugin.git</url>
         <tag>HEAD</tag>
     </scm>
 
