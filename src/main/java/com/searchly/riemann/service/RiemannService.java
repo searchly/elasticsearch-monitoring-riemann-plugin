@@ -10,7 +10,6 @@ import org.elasticsearch.action.admin.cluster.health.TransportClusterHealthActio
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags;
 import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.node.DiscoveryNode;
-import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.component.Lifecycle;
 import org.elasticsearch.common.inject.Inject;
@@ -62,7 +61,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
         clusterName = settings.get("cluster.name");
         tags = settings.getAsArray("metrics.riemann.tags", new String[]{clusterName});
         Settings attributeSettings = settings.getByPrefix("metrics.riemann.attribute");
-        for(ImmutableMap.Entry<String, String> entry: attributeSettings.getAsMap().entrySet()){
+        for(Map.Entry<String, String> entry: attributeSettings.getAsMap().entrySet()){
             String key = entry.getKey();
             if(key.startsWith(".")){
                 key = key.substring(1);

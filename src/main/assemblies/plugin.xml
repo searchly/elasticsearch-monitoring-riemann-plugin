@@ -12,7 +12,17 @@
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <excludes>
                 <exclude>org.elasticsearch:elasticsearch</exclude>
+                <exclude>com.google.protobuf:protobuf-java</exclude>
+                <exclude>com.aphyr:riemann-java-client</exclude>
+                <exclude>io.netty:netty</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
+    <files>
+        <file>
+            <source>${basedir}/src/main/resources/plugin-descriptor.properties</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
 </assembly>

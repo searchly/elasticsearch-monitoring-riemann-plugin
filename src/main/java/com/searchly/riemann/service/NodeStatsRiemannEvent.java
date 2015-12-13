@@ -5,7 +5,7 @@ import com.aphyr.riemann.client.RiemannClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.indices.NodeIndicesStats;
 import org.elasticsearch.monitor.MonitorService;
-import org.elasticsearch.monitor.fs.FsStats;
+import org.elasticsearch.monitor.fs.FsInfo;
 import org.elasticsearch.monitor.jvm.JvmStats;
 import org.elasticsearch.monitor.os.OsStats;
 
@@ -84,19 +84,7 @@ public class NodeStatsRiemannEvent {
         if (settings.getAsBoolean("metrics.riemann.system_load.enabled", true)) {
             long ok = settings.getAsLong("metrics.riemann.system_load.ok", 2L);
             long warning = settings.getAsLong("metrics.riemann.system_load.warning", 5L);
-            systemLoadOne(monitorService.osService().stats(), ok, warning);
-        }
-
-        if (settings.getAsBoolean("metrics.riemann.system_load_5m.enabled", true)) {
-            long ok = settings.getAsLong("metrics.riemann.system_load_5m.ok", 2L);
-            long warning = settings.getAsLong("metrics.riemann.system_load_5m.warning", 5L);
-            systemLoadFive(monitorService.osService().stats(), ok, warning);
-        }
-
-        if (settings.getAsBoolean("metrics.riemann.system_load_15m.enabled", true)) {
-            long ok = settings.getAsLong("metrics.riemann.system_load_15m.ok", 2L);
-            long warning = settings.getAsLong("metrics.riemann.system_load_15m.warning", 5L);
-            systemLoadFifteen(monitorService.osService().stats(), ok, warning);
+            systemLoad(monitorService.osService().stats(), ok, warning);
         }
 
         if (settings.getAsBoolean("metrics.riemann.system_memory_usage.enabled", true)) {
@@ -155,19 +143,9 @@ public class NodeStatsRiemannEvent {
         buildEvent().service("Total Thread Count").description("total_thread_count").state(RiemannUtils.getState(threadCount, ok, warning)).metric(threadCount).send();
     }
 
-    private void systemLoadOne(OsStats osStats, long ok, long warning) {
-        double[] systemLoad = osStats.getLoadAverage();
-        buildEvent().service("System Load(1m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[0], ok, warning)).metric(systemLoad[0]).send();
-    }
-
-    private void systemLoadFive(OsStats osStats, long ok, long warning) {
-        double[] systemLoad = osStats.getLoadAverage();
-        buildEvent().service("System Load(5m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[1], ok, warning)).metric(systemLoad[1]).send();
-    }
-
-    private void systemLoadFifteen(OsStats osStats, long ok, long warning) {
-        double[] systemLoad = osStats.getLoadAverage();
-        buildEvent().service("System Load(15m)").description("system_load").state(RiemannUtils.getState((long) systemLoad[2], ok, warning)).metric(systemLoad[2]).send();
+    private void systemLoad(OsStats osStats, long ok, long warning) {
+        double systemLoad = osStats.getLoadAverage();
+        buildEvent().service("System Load").description("system_load").state(RiemannUtils.getState((long) systemLoad, ok, warning)).metric(systemLoad).send();
     }
 
     private void systemMemory(OsStats osStats, long ok, long warning) {
@@ -176,12 +154,10 @@ public class NodeStatsRiemannEvent {
 
     }
 
-    private void systemFile(FsStats fsStats, long ok, long warning) {
-        for (FsStats.Info info : fsStats) {
-            long free = info.getFree().getBytes();
-            long total = info.getTotal().getBytes();
-            long usageRatio = ((total - free) * 100) / total;
-            buildEvent().service("Disk Usage %").description("system_disk_usage").state(RiemannUtils.getState(usageRatio, ok, warning)).metric(usageRatio).send();
-        }
+    private void systemFile(FsInfo fsInfo, long ok, long warning) {
+        long free = fsInfo.getTotal().getFree().getBytes();
+        long total = fsInfo.getTotal().getTotal().getBytes();
+        long usageRatio = ((total - free) * 100) / total;
+        buildEvent().service("Disk Usage %").description("system_disk_usage").state(RiemannUtils.getState(usageRatio, ok, warning)).metric(usageRatio).send();
     }
 }
