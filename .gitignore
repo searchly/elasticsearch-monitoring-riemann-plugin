@@ -8,3 +8,4 @@ target
 *.swp
 *.iml
 .idea
+dependency-reduced-pom.xml
