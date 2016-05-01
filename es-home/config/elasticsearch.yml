@@ -1,0 +1,5 @@
+metrics:
+    riemann:
+        every: 3s
+        host: "localhost"
+        tags: "production"

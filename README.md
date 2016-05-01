@@ -12,7 +12,7 @@ bin/plugin -url https://github.com/searchly/elasticsearch-monitoring-riemann-plu
 ```
 metrics:
     riemann:
-        every: 3000
+        every: 3s
         host: "localhost"
         tags: "production"
 ```
