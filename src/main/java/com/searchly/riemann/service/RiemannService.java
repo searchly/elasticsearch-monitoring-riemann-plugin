@@ -8,8 +8,8 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.health.TransportClusterHealthAction;
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags;
-import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.node.DiscoveryNode;
+import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.component.Lifecycle;
 import org.elasticsearch.common.inject.Inject;
@@ -30,7 +30,9 @@ import java.util.TimerTask;
  * TODO: cluster health status for single node clusters
  * TODO: Expand metrics recorded? http://radar.oreilly.com/2015/04/10-elasticsearch-metrics-to-watch.html
  */
-public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
+public class RiemannService extends AbstractLifecycleComponent {
+
+    //private static final Logger logger = Loggers.getLogger(RiemannService.class);
 
     private final ClusterService clusterService;
     private final String riemannHost;
@@ -115,7 +117,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
                 boolean isClusterStarted = clusterService.lifecycleState().equals(Lifecycle.State.STARTED);
                 if (isClusterStarted && node != null) {
 
-                    final String hostDefinition = clusterName + ":" + node.name();
+                    final String hostDefinition = clusterName + ":" + node.getName();
 
                     if (settings.getAsBoolean("metrics.riemann.health", true)) {
 
@@ -131,7 +133,7 @@ public class RiemannService extends AbstractLifecycleComponent<RiemannService> {
                             }
 
                             @Override
-                            public void onFailure(Throwable throwable) {
+                            public void onFailure(Exception exception) {
                                 buildEvent().state("critical").send();
                             }
                         });

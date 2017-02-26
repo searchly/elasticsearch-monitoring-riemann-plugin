@@ -144,8 +144,9 @@ public class NodeStatsRiemannEvent {
     }
 
     private void systemLoad(OsStats osStats, long ok, long warning) {
-        double systemLoad = osStats.getLoadAverage();
-        buildEvent().service("System Load").description("system_load").state(RiemannUtils.getState((long) systemLoad, ok, warning)).metric(systemLoad).send();
+        double[] systemLoad = osStats.getCpu().getLoadAverage();
+        riemannClient.event().host(hostDefinition).
+                service("System Load").description("system_load").tags(tags).attributes(attributes).state(RiemannUtils.getState((long) systemLoad[0], ok, warning)).metric(systemLoad[0]).send();
     }
 
     private void systemMemory(OsStats osStats, long ok, long warning) {
