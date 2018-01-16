@@ -20,10 +20,7 @@ import org.elasticsearch.monitor.MonitorService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * TODO: change service name to match general Riemann approach - should include more details
@@ -44,7 +41,7 @@ public class RiemannService extends AbstractLifecycleComponent {
     private final String clusterName;
     private RiemannClient riemannClient;
     private final TransportClusterHealthAction transportClusterHealthAction;
-    private String[] tags;
+    private List<String> tags;
     private Map<String, String> attributes = new HashMap<>();
 
     Timer timer = new Timer();
@@ -61,15 +58,7 @@ public class RiemannService extends AbstractLifecycleComponent {
         riemannHost = settings.get("metrics.riemann.host", "");
         riemannPort = settings.getAsInt("metrics.riemann.port", 5555);
         clusterName = settings.get("cluster.name");
-        tags = settings.getAsArray("metrics.riemann.tags", new String[]{clusterName});
-        Settings attributeSettings = settings.getByPrefix("metrics.riemann.attribute");
-        for(Map.Entry<String, String> entry: attributeSettings.getAsMap().entrySet()){
-            String key = entry.getKey();
-            if(key.startsWith(".")){
-                key = key.substring(1);
-            }
-            attributes.put(key, entry.getValue());
-        }
+        tags = settings.getAsList("metrics.riemann.tags", Collections.singletonList(clusterName));
         this.transportClusterHealthAction = transportClusterHealthAction;
         this.monitorService = monitorService;
         this.indicesService = indicesService;

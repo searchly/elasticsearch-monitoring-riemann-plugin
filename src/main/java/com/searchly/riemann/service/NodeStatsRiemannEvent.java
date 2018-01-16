@@ -10,6 +10,7 @@ import org.elasticsearch.monitor.jvm.JvmStats;
 import org.elasticsearch.monitor.os.OsStats;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,18 +23,18 @@ public class NodeStatsRiemannEvent {
     private Settings settings;
     private static NodeStatsRiemannEvent nodeStatsRiemannEvent;
     private Map<String, Long> deltaMap;
-    private String[] tags;
+    private List<String> tags;
     private Map<String, String> attributes;
 
     public static NodeStatsRiemannEvent getNodeStatsRiemannEvent(RiemannClient riemannClient,
-                                                                 Settings settings, String hostDefinition, String clusterName, String[] tags, Map<String, String> attributes) {
+                                                                 Settings settings, String hostDefinition, String clusterName, List<String> tags, Map<String, String> attributes) {
         if (nodeStatsRiemannEvent == null) {
             nodeStatsRiemannEvent = new NodeStatsRiemannEvent(riemannClient, settings, hostDefinition, clusterName, tags, attributes);
         }
         return nodeStatsRiemannEvent;
     }
 
-    private NodeStatsRiemannEvent(RiemannClient riemannClient, Settings settings, String hostDefinition, String clusterName, String[] tags, Map<String, String> attributes) {
+    private NodeStatsRiemannEvent(RiemannClient riemannClient, Settings settings, String hostDefinition, String clusterName, List<String> tags, Map<String, String> attributes) {
         this.riemannClient = riemannClient;
         this.hostDefinition = hostDefinition;
         this.settings = settings;
