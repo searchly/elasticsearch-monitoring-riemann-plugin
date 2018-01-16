@@ -3,6 +3,7 @@ package com.searchly.riemann.service;
 import com.aphyr.riemann.client.EventDSL;
 import com.aphyr.riemann.client.RiemannClient;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.SpecialPermission;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
@@ -17,9 +18,12 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.indices.IndicesService;
 import org.elasticsearch.monitor.MonitorService;
+import org.elasticsearch.node.NodeService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
@@ -50,7 +54,7 @@ public class RiemannService extends AbstractLifecycleComponent {
     public RiemannService(Settings settings,
                           ClusterService clusterService,
                           TransportClusterHealthAction transportClusterHealthAction,
-                          MonitorService monitorService,
+                          NodeService nodeService,
                           IndicesService indicesService) {
         super(settings);
         this.clusterService = clusterService;
@@ -60,7 +64,7 @@ public class RiemannService extends AbstractLifecycleComponent {
         clusterName = settings.get("cluster.name");
         tags = settings.getAsList("metrics.riemann.tags", Collections.singletonList(clusterName));
         this.transportClusterHealthAction = transportClusterHealthAction;
-        this.monitorService = monitorService;
+        this.monitorService = nodeService.getMonitorService();
         this.indicesService = indicesService;
     }
 
@@ -69,7 +73,21 @@ public class RiemannService extends AbstractLifecycleComponent {
         if (riemannHost != null && riemannHost.length() > 0) {
             try {
                 riemannClient = RiemannClient.udp(new InetSocketAddress(riemannHost, riemannPort));
-                riemannClient.connect();
+                SecurityManager sm = System.getSecurityManager();
+
+                if (sm != null) {
+                    sm.checkPermission(new SpecialPermission());
+                }
+
+                AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+                    try {
+                        riemannClient.connect();
+                    } catch (IOException e) {
+                        logger.error(e);
+                    }
+                    return null;
+                });
+
                 timer.scheduleAtFixedRate(new RiemannTask(), riemannRefreshInternal.millis(), riemannRefreshInternal.millis());
 
                 logger.info("Riemann reporting triggered every [{}] to host [{}:{}]", riemannRefreshInternal, riemannHost, riemannPort);

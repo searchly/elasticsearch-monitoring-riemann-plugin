@@ -4,7 +4,7 @@
   <groupId>com.searchly</groupId>
   <artifactId>elasticsearch-riemann-plugin</artifactId>
   <name>elasticsearch-riemann-plugin</name>
-  <version>5.1.3-SNAPSHOT</version>
+  <version>6.1.1-SNAPSHOT</version>
   <description>Riemann monitoring plugin for Elasticsearch</description>
   <scm>
     <connection>scm:git:https://github.com/searchly/elasticsearch-monitoring-riemann-plugin.git/</connection>
