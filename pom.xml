@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.searchly</groupId>
     <artifactId>elasticsearch-riemann-plugin</artifactId>
-    <version>6.2.2-SNAPSHOT</version>
+    <version>6.2.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <description>Riemann monitoring plugin for Elasticsearch</description>
 
     <properties>
-        <elasticsearch.version>6.2.1</elasticsearch.version>
+        <elasticsearch.version>6.2.4</elasticsearch.version>
         <riemann-java-client.version>0.4.1</riemann-java-client.version>
         <java-compiler.version>1.8</java-compiler.version>
         <maven-release.version>2.5.1</maven-release.version>
