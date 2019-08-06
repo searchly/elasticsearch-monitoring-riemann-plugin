@@ -4,7 +4,7 @@
   <groupId>com.searchly</groupId>
   <artifactId>elasticsearch-riemann-plugin</artifactId>
   <name>elasticsearch-riemann-plugin</name>
-  <version>6.2.4-SNAPSHOT</version>
+  <version>7.3.0-SNAPSHOT</version>
   <description>Riemann monitoring plugin for Elasticsearch</description>
   <scm>
     <connection>scm:git:https://github.com/searchly/elasticsearch-monitoring-riemann-plugin.git/</connection>
@@ -114,7 +114,7 @@
     <dependency>
       <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
-      <version>6.2.4</version>
+      <version>7.3.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -131,11 +131,11 @@
     </dependency>
   </dependencies>
   <properties>
-    <elasticsearch.version>6.2.4</elasticsearch.version>
+    <elasticsearch.version>7.3.0</elasticsearch.version>
+    <maven-release.version>2.5.1</maven-release.version>
     <riemann-java-client.version>0.4.1</riemann-java-client.version>
     <java-compiler.version>1.8</java-compiler.version>
     <log4j.version>2.7</log4j.version>
-    <maven-release.version>2.5.1</maven-release.version>
   </properties>
 </project>
 

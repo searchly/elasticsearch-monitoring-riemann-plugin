@@ -2,6 +2,8 @@ package com.searchly.riemann.service;
 
 import com.aphyr.riemann.client.EventDSL;
 import com.aphyr.riemann.client.RiemannClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.SpecialPermission;
 import org.elasticsearch.action.ActionListener;
@@ -33,7 +35,7 @@ import java.util.*;
  */
 public class RiemannService extends AbstractLifecycleComponent {
 
-    //private static final Logger logger = Loggers.getLogger(RiemannService.class);
+    private static final Logger logger = LogManager.getLogger(RiemannService.class);
 
     private final ClusterService clusterService;
     private final String riemannHost;
@@ -48,7 +50,9 @@ public class RiemannService extends AbstractLifecycleComponent {
     private List<String> tags;
     private Map<String, String> attributes = new HashMap<>();
 
-    Timer timer = new Timer();
+    private Timer timer = new Timer();
+
+    private Settings settings;
 
     @Inject
     public RiemannService(Settings settings,
@@ -56,7 +60,8 @@ public class RiemannService extends AbstractLifecycleComponent {
                           TransportClusterHealthAction transportClusterHealthAction,
                           NodeService nodeService,
                           IndicesService indicesService) {
-        super(settings);
+        super();
+        this.settings = settings;
         this.clusterService = clusterService;
         riemannRefreshInternal = settings.getAsTime("metrics.riemann.every", TimeValue.timeValueSeconds(1));
         riemannHost = settings.get("metrics.riemann.host", "");
