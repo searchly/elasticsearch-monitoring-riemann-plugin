@@ -14,7 +14,7 @@
         <riemann-java-client.version>0.4.1</riemann-java-client.version>
         <java-compiler.version>1.8</java-compiler.version>
         <maven-release.version>2.5.3</maven-release.version>
-        <log4j.version>2.7</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
     </properties>
     
     <scm>
